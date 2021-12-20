@@ -3,28 +3,9 @@ unit View.User.GroupPermission;
 interface
 
 uses
-  PermissionUser,
-  Query,
-  DM.User.Group,
-  Winapi.Windows,
-  Winapi.Messages,
-  System.SysUtils,
-  System.Variants,
-  System.Classes,
-  System.ImageList,
-  System.UITypes,
-  Data.DB,
-  Vcl.Graphics,
-  Vcl.Controls,
-  Vcl.Forms,
-  Vcl.Dialogs,
-  Vcl.ExtCtrls,
-  Vcl.StdCtrls,
-  Vcl.Buttons,
-  Vcl.Grids,
-  Vcl.DBGrids,
-  Vcl.ImgList,
-  Vcl.ComCtrls;
+  PermissionUser, Query, DM.User.Group, Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  System.ImageList, System.UITypes, Data.DB, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls,
+  Vcl.Buttons, Vcl.Grids, Vcl.DBGrids, Vcl.ImgList, Vcl.ComCtrls;
 
 type
   TViewUserGroupPermission = class(TForm)
@@ -35,7 +16,6 @@ type
     pnlOperation: TPanel;
     btnSave: TBitBtn;
     btnCancel: TBitBtn;
-    ImgList: TImageList;
     pnlGrid: TPanel;
     pgcDefault: TPageControl;
     tshGrid: TTabSheet;
@@ -52,6 +32,7 @@ type
     btnNotAll: TSpeedButton;
     bntAll: TSpeedButton;
     scrList: TScrollBox;
+    ImgList: TImageList;
     procedure FormCreate(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure bntAllClick(Sender: TObject);
@@ -239,7 +220,7 @@ procedure TViewUserGroupPermission.OnClickOperation(Sender: TObject);
         FDataSetComponents.Next;
       end;
       dsComponents.DataSet.First;
-      grdComponents.Height := grdComponents.DataSource.DataSet.RecordCount * 18;
+      grdComponents.Height := grdComponents.DataSource.DataSet.RecordCount * 25;
     finally
       FDataSetComponents.Filtered := False;
       FDataSetComponents.GotoBookmark(Bookmark);

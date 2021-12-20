@@ -3,27 +3,9 @@ unit View.User.InsertEdit;
 interface
 
 uses
-  Winapi.Windows,
-  Winapi.Messages,
-  System.SysUtils,
-  System.Variants,
-  System.Classes,
-  System.UITypes,
-  Vcl.Graphics,
-  Vcl.Controls,
-  Vcl.Forms,
-  Vcl.Dialogs,
-  Vcl.ExtCtrls,
-  Vcl.StdCtrls,
-  Vcl.DBCtrls,
-  Vcl.Mask,
-  Data.DB,
-  Vcl.Buttons,
-  Query,
-  View.User.Password,
-  PermissionUser,
-  DM.User.Registration;
-
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, System.UITypes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls, Vcl.DBCtrls, Vcl.Mask, Data.DB, Vcl.Buttons, Query,
+  View.User.Password, PermissionUser, DM.User.Registration;
 type
   TViewUserInsertEdit = class(TForm)
     pnlDefault: TPanel;
@@ -70,8 +52,8 @@ procedure TViewUserInsertEdit.btnSaveClick(Sender: TObject);
   procedure SetPassword;
   begin
     case dsRegistrationInsertEdit.DataSet.State of
-      dsInsert: dsRegistrationInsertEdit.DataSet.FieldByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := TViewUserPassword.GetPassword(toNew);
-      dsEdit: dsRegistrationInsertEdit.DataSet.FieldByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := TViewUserPassword.GetPassword(toUpdate,dsRegistrationInsertEdit.DataSet.FieldByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString);
+      dsInsert: dsRegistrationInsertEdit.DataSet.FieldByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := PermissionUser.Cript(TViewUserPassword.GetPassword(toNew),100);
+      dsEdit: dsRegistrationInsertEdit.DataSet.FieldByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := PermissionUser.Cript(TViewUserPassword.GetPassword(toUpdate,dsRegistrationInsertEdit.DataSet.FieldByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString),100);
     end;
   end;
 

@@ -3,14 +3,7 @@ unit PermissionUser;
 interface
 
 uses
-  Query,
-  System.Classes,
-  System.SysUtils,
-  System.UITypes,
-  Data.DB,
-  Vcl.Forms,
-  Vcl.Controls,
-  Vcl.Dialogs,
+  Query, System.Classes, System.SysUtils, System.UITypes, Data.DB, Vcl.Forms, Vcl.Controls, Vcl.Dialogs,
   Vcl.Buttons;
 
 type
@@ -279,23 +272,22 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    property UserLogged: TPermissionUserRegistration read FUserLogged;
-    procedure Load;
-    procedure Login;
     procedure OnClickUserRegistration(Sender: TObject);
     procedure OnClickGroup(Sender: TObject);
     procedure OnClickModifyPassword(Sender: TObject);
+    property UserLogged: TPermissionUserRegistration read FUserLogged;
+    procedure Load;
+    procedure Login;
     procedure LoadGroupPermission;
+    function AsciiToInt(Caracter: Char): Integer;
+    function Cript(Value:string; Key:integer): String;
+    function DesCript(Value:string; Key:integer): String;
   end;
 
 implementation
 
 uses
-  DM.User.Group,
-  View.PermissionUser.Login,
-  View.User.Registration,
-  View.User.GroupPermission,
-  View.User.Password;
+  DM.User.Group, View.PermissionUser.Login, View.User.Registration, View.User.GroupPermission, View.User.Password;
 
 { TPermissionUser }
 
@@ -318,6 +310,52 @@ begin
   FPermissionUserTableGroupComponents := TPermissionUserTableGroupComponents.Create(Self);
   FPermissionUserTableGroupUser := TPermissionUserTableGroupUser.Create(Self);
   FPermissionUserComponentsAll := TPermissionUserComponentsAll.Create;
+end;
+
+function TPermissionUser.AsciiToInt(Caracter: Char): Integer;
+var
+  i: Integer;
+begin
+  i := 32;
+  while i < 255 do
+  begin
+    if Chr(i) = Caracter then
+      Break;
+    i := i + 1;
+  end;
+  Result := i;
+end;
+
+function TPermissionUser.Cript(Value: string; Key: integer): String;
+var
+  Count: integer;
+  Return: string;
+begin
+  if (trim(Value) = EmptyStr) or (Key = 0) then
+    result := Value
+  else
+  begin
+    Return := '';
+    for Count := 1 to Length(Value) do
+      Return := Return + Chr(AsciiToInt(Value[Count]) + Key);
+    result := Return;
+  end;
+end;
+
+function TPermissionUser.DesCript(Value: string; Key: integer): String;
+var
+  Count: integer;
+  Return: string;
+begin
+  if (Trim(Value) = EmptyStr) or (Key = 0) then
+    Result := Value
+  else
+  begin
+    Return := '';
+    for Count := 1 to Length(Value) do
+      Return := Return + Chr(AsciiToInt(Value[Count]) - Key);
+    Result := Return;
+  end;
 end;
 
 destructor TPermissionUser.Destroy;
@@ -423,7 +461,7 @@ procedure TPermissionUserComponentsConfiguration.Load;
 var
   i: Integer;
 begin
-  if not FActive then
+  if (not FActive) or (FPermissionUser.UserLogged.UserSystem) then
     Exit;
   for i := 0 to Pred(FPermissionUserComponents.Count) do
   begin
@@ -509,7 +547,7 @@ procedure TPermissionUserTable.CreateTable;
                                              QuotedStr(FPermissionUser.UserDefaultName),
                                              QuotedStr(FPermissionUser.UserDefaultEmail),
                                              QuotedStr(FPermissionUser.UserDefaultLogin),
-                                             QuotedStr(FPermissionUser.UserDefaultPassword),
+                                             QuotedStr(FPermissionUser.Cript(FPermissionUser.UserDefaultPassword,100)),
                                              QuotedStr('true'),
                                              QuotedStr('true'),
                                              QuotedStr('true')]);
@@ -630,14 +668,14 @@ const
   function ValidadeLogin(User, Password: string): TLoginOperation;
   begin
     Result := loNotAuthorized;
-    with TQueryFD.Create(FPermissionUser.PermissionUserConnection.Connection,Format(SqlLogin,[FPermissionUser.PermissionUserTable.UserTableName,FPermissionUser.PermissionUserTable.UserFieldLogin,FPermissionUser.PermissionUserTable.UserFieldLogin,FPermissionUser.PermissionUserTable.UserFieldPassword,FPermissionUser.PermissionUserTable.UserFieldPassword])).qy do
+    with TQueryFD.Create(FPermissionUser.PermissionUserConnection.Connection,Format(SqlLogin,[FPermissionUser.PermissionUserTable.UserTableName,FPermissionUser.PermissionUserTable.UserFieldLogin,FPermissionUser.PermissionUserTable.UserFieldLogin,FPermissionUser.PermissionUserTable.UserFieldPassword,FPermissionUser.PermissionUserTable.UserFieldPassword])) do
       try
-        Close;
-        ParamByName(FPermissionUser.PermissionUserTable.UserFieldLogin).AsString := User;
-        ParamByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := Password;
-        Open;
+        qy.Close;
+        qy.ParamByName(FPermissionUser.PermissionUserTable.UserFieldLogin).AsString := User;
+        qy.ParamByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := PermissionUser.Cript(Password,100);
+        qy.Open;
 
-        if (not IsEmpty) and FieldByName(FPermissionUser.PermissionUserTable.UserFieldActive).AsBoolean then
+        if (not qy.IsEmpty) and qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldActive).AsBoolean then
           Result := loAuthorized;
 
         if Result = loNotAuthorized then
@@ -646,14 +684,15 @@ const
           Exit;
         end;
 
-        FId := FieldByName(FPermissionUser.PermissionUserTable.UserFieldId).AsInteger;
-        FIdGroup := FieldByName(FPermissionUser.PermissionUserTable.UserFieldIdGroup).AsInteger;
-        FLogin := FieldByName(FPermissionUser.PermissionUserTable.UserFieldLogin).AsString;
-        FName := FieldByName(FPermissionUser.PermissionUserTable.UserFieldName).AsString;
-        FEmail := FieldByName(FPermissionUser.PermissionUserTable.UserFieldEmail).AsString;
-        FAdmin := FieldByName(FPermissionUser.PermissionUserTable.UserFieldAdmin).AsBoolean;
-        FPassword := FieldByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString;
-        FActive := FieldByName(FPermissionUser.PermissionUserTable.UserFieldActive).AsBoolean;
+        FId := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldId).AsInteger;
+        FIdGroup := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldIdGroup).AsInteger;
+        FLogin := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldLogin).AsString;
+        FName := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldName).AsString;
+        FEmail := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldEmail).AsString;
+        FAdmin := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldAdmin).AsBoolean;
+        FPassword := Password;
+        FActive := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldActive).AsBoolean;
+        FUserSystem := qy.FieldByName(FPermissionUser.PermissionUserTable.UserFieldUserSystem).AsBoolean;
 
       finally
         Free;
@@ -696,7 +735,7 @@ const
   begin
     with TQueryFD.Create(FPermissionUser.PermissionUserConnection.Connection,Format(SqlModify,[FPermissionUser.PermissionUserTable.UserTableName,FPermissionUser.PermissionUserTable.UserFieldPassword,FPermissionUser.PermissionUserTable.UserFieldPassword,FPermissionUser.PermissionUserTable.UserFieldId,FPermissionUser.PermissionUserTable.UserFieldId])).qy do
       try
-        ParamByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := Password;
+        ParamByName(FPermissionUser.PermissionUserTable.UserFieldPassword).AsString := PermissionUser.Cript(Password,100);
         ParamByName(FPermissionUser.PermissionUserTable.UserFieldId).AsInteger := FPermissionUser.UserLogged.FId;
         ExecSQL;
       finally
@@ -710,6 +749,8 @@ begin
   with TViewUserPassword.Create(FPermissionUser) do
     try
       PasswordModify := GetPassword(toUpdate,FPassword);
+      if PasswordModify = '' then
+        Exit;
     finally
       Free;
     end;

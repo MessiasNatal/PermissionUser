@@ -17,7 +17,6 @@ uses
 
 type
   TOperation = (toSave, toDelete, toCancel);
-
   TQueryFD = class
   private
     FQuery: TFDQuery;
