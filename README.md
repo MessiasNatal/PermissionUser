@@ -1,5 +1,5 @@
 # PermissionUser
-Componente para contole de permissão de usuários 
+Componente para controle de permissão de usuários 
 
 Add Path Libray
 \PermissionUser
